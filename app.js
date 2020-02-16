@@ -27,5 +27,39 @@ async function pullData() {
 	fs.writeFile('beyond1031_a.csv', str, (err) => console.log('error writing file:', err));
 	//nextPageToken
 }
-pullData();
-
+//pullData();
+function saveCSVFile() {
+	try {
+		const data = fs.readFileSync('data.txt', 'utf8')
+		const arr = data.split('\n');
+		let dateRegex = /\d{2}[\/\.]\d{2}[\/\.]2?0?\d{2}/;
+		let dayRegex = /Day \d{1,4}/;
+		let urlRegex = /\/watch\?v=[\w_-]{11}/;
+		const formattedCells = arr.map((entry,i) => {
+			let date = entry.match(dateRegex);
+			let day = entry.match(dayRegex);
+			let video = entry.match(urlRegex);
+			let url = video ? 'https://www.youtube.com'+video[0] : 'no link';	
+			let formattedEntry = entry.replace(urlRegex,'');
+			formattedEntry = formattedEntry.replace(',','\,');
+			return `${day ? day[0]:''};${date ? date[0] : ''};${url};${formattedEntry}`;
+		});
+		let str = formattedCells.join('');
+		fs.writeFile('beyond1031.csv', str, (err) => console.log('error writing file:', err));
+	} catch (err) {
+		console.error(err)
+	}
+}
+saveCSVFile();
+// let str1 = 'Hellmouth  Vlog 09/26/10 [Day 1]  - Prop Car Intro	/watch?v=1MRFmIiohE0';
+// let str2 = 'Hangouts and The Witch!! [Day 1936 - 02.18.16]	/watch?v=aoxsaI6pr84';
+// let dateRegex = /\d{2}[\/\.]\d{2}[\/\.]2?0?\d{2}/;
+// let dayRegex = /Day \d{1,4}/;
+// let urlRegex = /\/watch\?v=\w{11}/;
+// //https://www.youtube.com/watch?v=a5TJfUWjvKk
+// console.log(str1.match(dateRegex)[0]);
+// console.log(str2.match(dateRegex)[0]);
+// console.log(str1.match(dayRegex)[0]);
+// console.log(str2.match(dayRegex)[0]);
+// console.log(str1.match(urlRegex)[0]);
+// console.log(str2.match(urlRegex)[0]);
