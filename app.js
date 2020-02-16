@@ -1,5 +1,6 @@
 require('dotenv').config();
 const axios = require('axios');
+const cheerio = require('cheerio');
 const fs = require('fs');
 
 async function pullData() {
@@ -28,6 +29,36 @@ async function pullData() {
 	//nextPageToken
 }
 //pullData();
+
+
+
+async function scrapeVideos() {
+	const data = fs.readFileSync('data.txt', 'utf8');
+	const arr = data.split('\n');
+	let urlRegex = /\/watch\?v=[\w_-]{11}/;
+	let videos = [];
+	try {
+		for (let i=0; i<100; i++) {
+			let video = 'https://www.youtube.com'+arr[i].match(urlRegex)[0];
+			const response = await axios.get(video);
+			const html = response.data;
+			//fs.writeFile('page.txt', html, (err) => console.log('error writing file:', err));
+			const $ = cheerio.load(html);
+			const videoTitle = $('#eow-title');
+			const publishedOn = $('.watch-time-text');
+			const videoData = {};
+			videoData.videoTitle = videoTitle.html().trim();
+			videoData.publishedOn = publishedOn.html().trim();
+			videos.push(videoData);
+		}
+		console.log(videos);
+	} catch(err) {
+		console.log(err);
+	}
+}
+
+scrapeVideos();
+
 function saveCSVFile() {
 	try {
 		const data = fs.readFileSync('data.txt', 'utf8')
@@ -50,16 +81,4 @@ function saveCSVFile() {
 		console.error(err)
 	}
 }
-saveCSVFile();
-// let str1 = 'Hellmouth  Vlog 09/26/10 [Day 1]  - Prop Car Intro	/watch?v=1MRFmIiohE0';
-// let str2 = 'Hangouts and The Witch!! [Day 1936 - 02.18.16]	/watch?v=aoxsaI6pr84';
-// let dateRegex = /\d{2}[\/\.]\d{2}[\/\.]2?0?\d{2}/;
-// let dayRegex = /Day \d{1,4}/;
-// let urlRegex = /\/watch\?v=\w{11}/;
-// //https://www.youtube.com/watch?v=a5TJfUWjvKk
-// console.log(str1.match(dateRegex)[0]);
-// console.log(str2.match(dateRegex)[0]);
-// console.log(str1.match(dayRegex)[0]);
-// console.log(str2.match(dayRegex)[0]);
-// console.log(str1.match(urlRegex)[0]);
-// console.log(str2.match(urlRegex)[0]);
+//saveCSVFile();
