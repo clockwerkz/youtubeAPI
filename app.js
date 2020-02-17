@@ -33,12 +33,15 @@ async function pullData() {
 
 
 async function scrapeVideos() {
+	let dateRegex = /\d{2}[\/\.]\d{2}[\/\.]2?0?\d{2}/;
+	let dayRegex = /Day \d{1,4}/;
+	let urlRegex = /\/watch\?v=[\w_-]{11}/;
 	const data = fs.readFileSync('data.txt', 'utf8');
 	const arr = data.split('\n');
-	let urlRegex = /\/watch\?v=[\w_-]{11}/;
-	let videos = [];
+	let str = "";
 	try {
-		for (let i=0; i<100; i++) {
+		for (let i=0; i<20; i++) {
+			console.log(i);
 			let video = 'https://www.youtube.com'+arr[i].match(urlRegex)[0];
 			const response = await axios.get(video);
 			const html = response.data;
@@ -46,12 +49,17 @@ async function scrapeVideos() {
 			const $ = cheerio.load(html);
 			const videoTitle = $('#eow-title');
 			const publishedOn = $('.watch-time-text');
+			const views = $('.watch-view-count');
+			const description = $('#eow-description');
+			let date = videoTitle.html().trim().match(dateRegex)[0];
 			const videoData = {};
-			videoData.videoTitle = videoTitle.html().trim();
-			videoData.publishedOn = publishedOn.html().trim();
-			videos.push(videoData);
+			str += videoTitle.html().trim()+";;";
+			str+=publishedOn.html().trim().replace("Published on ","")+";;";
+			str+= views.html().trim().replace(' views','')+";;";
+			str+= date+";;";
+		 	str+= description.html().trim()+";;\r\n";
 		}
-		console.log(videos);
+		fs.writeFile('beyond1031_views.csv', str, (err) => console.log('error writing file:', err));
 	} catch(err) {
 		console.log(err);
 	}
